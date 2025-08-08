@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>员工打卡可视化</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .amap-marker-label {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #ddd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+  </style>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=b479b036079bc0579bc23d62cdfdfb6b&plugin=AMap.MarkerCluster,AMap.ToolBar,AMap.Scale,AMap.DistrictSearch"></script>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var map = new AMap.Map('map', {
+      zoom: 5,
+      center: [111.236024, 24.559199],
+      viewMode: '2D'
+    });
+
+    var points = [{"name": "龚来", "address": "广东省珠海市金湾区创业中路2号", "province": "广东省", "position": [113.281266, 22.08831], "content": "<b>龚来</b><br/>广东省 广东省珠海市金湾区创业中路2号"}, {"name": "龙远志", "address": "眉山市东坡区东坡区阳光未来城(蜀山路南)", "province": "四川省", "position": [103.833874, 30.068128], "content": "<b>龙远志</b><br/>四川省 眉山市东坡区东坡区阳光未来城(蜀山路南)"}, {"name": "龙开吉", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>龙开吉</b><br/>广东省 广东省东莞市超东路82号"}, {"name": "齐宗", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>齐宗</b><br/>广东省 广东省东莞市超东路82号"}];
+    var emphasizeProvinces = [];
+    var infoWin = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) });
+
+    // 创建 marker
+    var markers = points.map(function(p) {
+      var icon = new AMap.Icon({
+        size: new AMap.Size(25, 34),
+        image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
+        imageSize: new AMap.Size(25, 34)
+      });
+      var m = new AMap.Marker({
+        position: p.position,
+        title: p.name || '',
+        icon: icon
+      });
+      m._meta = p;
+      m.on('click', function() {
+        infoWin.setContent(
+          '<div style="font-size:14px;">' +
+          '<b>👤 姓名：</b>' + (p.name || '') + '<br/>' +
+          '<b>📍 地址：</b>' + (p.province ? p.province + ' ' : '') + (p.address || '') +
+          '</div>'
+        );
+        infoWin.open(map, p.position);
+      });
+      return m;
+    });
+
+    map.add(markers);
+    if (markers.length) {
+      map.setFitView(markers, true, [50, 50, 50, 50]);
+    }
+
+    // 按省统计人数
+    var provinceCounts = {};
+    points.forEach(function(p) {
+      var prov = (p.province || '').trim();
+      if (!prov) return;
+      provinceCounts[prov] = (provinceCounts[prov] || 0) + 1;
+    });
+
+    // 高亮省份并加总人数标注
+    var ds = new AMap.DistrictSearch({
+      level: 'province',
+      extensions: 'all',
+      subdistrict: 0
+    });
+
+    Object.keys(provinceCounts).forEach(function(provName, idx) {
+      if (emphasizeProvinces.indexOf(provName) >= 0) {
+        var bigIcon = new AMap.Icon({
+          size: new AMap.Size(32, 44),
+          image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
+          imageSize: new AMap.Size(32, 44)
+        });
+        markers
+          .filter(m => m._meta && m._meta.province === provName)
+          .forEach(m => { m.setIcon(bigIcon); m.setTop(true); });
+      }
+
+      setTimeout(function() {
+        ds.search(provName, function(status, result) {
+          if (status === 'complete' && result.districtList.length > 0) {
+            var dist = result.districtList[0];
+            var boundaries = dist.boundaries || [];
+            if (boundaries.length > 0) {
+              boundaries.forEach(function(path) {
+                var polygon = new AMap.Polygon({
+                  path: path,
+                  strokeColor: '#ff0000',
+                  strokeWeight: 2,
+                  fillColor: '#ff0000',
+                  fillOpacity: 0.15
+                });
+                map.add(polygon);
+              });
+              var center = dist.center;
+              var count = provinceCounts[provName] || 0;
+              var text = new AMap.Text({
+                position: center,
+                text: provName + '：总计 ' + count + ' 人',
+                style: {
+                  'background': 'rgba(255,255,255,0.95)',
+                  'padding': '4px 8px',
+                  'border': '1px solid #ff0000',
+                  'border-radius': '4px',
+                  'font-weight': 'bold'
+                },
+                zIndex: 200
+              });
+              text.setMap(map);
+            }
+          }
+        });
+      }, idx * 150); // 延时避免限流
+    });
+
+    new AMap.MarkerCluster(map, markers, { gridSize: 80 });
+    map.addControl(new AMap.ToolBar());
+    map.addControl(new AMap.Scale());
+  </script>
+</body>
+</html>
