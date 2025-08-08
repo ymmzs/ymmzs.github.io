@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>员工打卡可视化</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body, #map { height: 100%; margin: 0; padding: 0; }
+    .amap-marker-label {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #ddd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+  </style>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=b479b036079bc0579bc23d62cdfdfb6b"></script>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var map = new AMap.Map('map', {
+      zoom: 5,
+      center: [111.236024, 24.559199],
+      viewMode: '2D'
+    });
+
+    var points = [{"name": "龚来", "address": "广东省珠海市金湾区创业中路2号", "province": "广东省", "position": [113.281266, 22.08831], "content": "<b>龚来</b><br/>广东省 广东省珠海市金湾区创业中路2号"}, {"name": "龙远志", "address": "眉山市东坡区东坡区阳光未来城(蜀山路南)", "province": "四川省", "position": [103.833874, 30.068128], "content": "<b>龙远志</b><br/>四川省 眉山市东坡区东坡区阳光未来城(蜀山路南)"}, {"name": "龙开吉", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>龙开吉</b><br/>广东省 广东省东莞市超东路82号"}, {"name": "齐宗", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>齐宗</b><br/>广东省 广东省东莞市超东路82号"}];
+    var infoWin = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) });
+
+    var markers = points.map(function(p) {
+      var marker = new AMap.Marker({
+        position: p.position,
+        title: p.name
+      });
+      marker.on('click', function() {
+        infoWin.setContent(p.content);
+        infoWin.open(map, p.position);
+      });
+      marker.setLabel({
+        direction: 'top',
+        offset: new AMap.Pixel(0, -5),
+        content: '<div>' + p.name + '</div>'
+      });
+      return marker;
+    });
+
+    var cluster = new AMap.MarkerCluster(map, markers, {
+      gridSize: 80
+    });
+
+    map.setFitView(markers, true, [50, 50, 50, 50]);
+  </script>
+</body>
+</html>
