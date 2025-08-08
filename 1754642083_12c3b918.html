@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>员工打卡可视化</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  html, body, #map { height:100%; margin:0; padding:0; }
+</style>
+<script>
+  window._AMapSecurityConfig = {
+    securityJsCode: '4f2f784efc2d91f05503cc67c9d1bae8'
+  };
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=caf9ae6b677894d55e07fea480fcdc6d&plugin=AMap.ToolBar,AMap.Scale,AMap.DistrictSearch"></script>
+</head>
+<body>
+<div id="map"></div>
+<script>
+(function(){
+  var map = new AMap.Map('map', {
+    zoom: 5,
+    center: [113.462747, 24.667952],
+    viewMode: '2D'
+  });
+
+  var points = [{"name": "龚来", "address": "广东省珠海市金湾区创业中路2号", "province": "广东省", "position": [113.281266, 22.08831], "content": "<b>👤 姓名：</b>龚来<br/><b>📍 地址：</b>广东省 广东省珠海市金湾区创业中路2号"}, {"name": "龙远志", "address": "眉山市东坡区东坡区阳光未来城(蜀山路南)", "province": "四川省", "position": [103.833874, 30.068128], "content": "<b>👤 姓名：</b>龙远志<br/><b>📍 地址：</b>四川省 眉山市东坡区东坡区阳光未来城(蜀山路南)"}, {"name": "龙开吉", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>龙开吉<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "齐宗", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>齐宗<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黎勇", "address": "广东省深圳市龙岗区宝龙一路宝龙一路27-5号", "province": "广东省", "position": [114.286956, 22.687053], "content": "<b>👤 姓名：</b>黎勇<br/><b>📍 地址：</b>广东省 广东省深圳市龙岗区宝龙一路宝龙一路27-5号"}, {"name": "黄雄安", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄雄安<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄钰松", "address": "四川省眉山市东坡区高新技术产业园区万华大道1号", "province": "四川省", "position": [103.764853, 30.036396], "content": "<b>👤 姓名：</b>黄钰松<br/><b>📍 地址：</b>四川省 四川省眉山市东坡区高新技术产业园区万华大道1号"}, {"name": "黄莹", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄莹<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄立勇", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄立勇<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄润龙", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄润龙<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄桂贵", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄桂贵<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄晨曦", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄晨曦<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄晓真", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄晓真<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄明真", "address": "安徽省淮北市相山区闸河路", "province": "安徽省", "position": [116.802292, 33.969743], "content": "<b>👤 姓名：</b>黄明真<br/><b>📍 地址：</b>安徽省 安徽省淮北市相山区闸河路"}, {"name": "黄方烨", "address": "常州市溧阳市溧阳市蒋店新城", "province": "江苏省", "position": [119.415721, 31.442724], "content": "<b>👤 姓名：</b>黄方烨<br/><b>📍 地址：</b>江苏省 常州市溧阳市溧阳市蒋店新城"}, {"name": "黄志国", "address": "湖北省宜昌市兴山县思乡路", "province": "湖北省", "position": [110.759097, 31.228418], "content": "<b>👤 姓名：</b>黄志国<br/><b>📍 地址：</b>湖北省 湖北省宜昌市兴山县思乡路"}, {"name": "黄尧", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄尧<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄家照", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄家照<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄宝光", "address": "福建省宁德市蕉城区振兴路", "province": "福建省", "position": [119.55388, 26.718301], "content": "<b>👤 姓名：</b>黄宝光<br/><b>📍 地址：</b>福建省 福建省宁德市蕉城区振兴路"}, {"name": "黄妙华", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄妙华<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "黄俊", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>黄俊<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "高鹏飞", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>高鹏飞<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "高茂虎", "address": "广东省肇庆市高要区创业四路", "province": "广东省", "position": [112.792046, 23.087862], "content": "<b>👤 姓名：</b>高茂虎<br/><b>📍 地址：</b>广东省 广东省肇庆市高要区创业四路"}, {"name": "高小云", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>高小云<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "骆礼军", "address": "广东省肇庆市高要区Y184与Y235交叉口东北方向1430米左右", "province": "广东省", "position": [112.458055, 23.02474], "content": "<b>👤 姓名：</b>骆礼军<br/><b>📍 地址：</b>广东省 广东省肇庆市高要区Y184与Y235交叉口东北方向1430米左右"}, {"name": "马磊", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>马磊<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}, {"name": "马杰林", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>马杰林<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}];
+  var provinceCounts = {"广东省": 21, "四川省": 2, "安徽省": 1, "江苏省": 1, "湖北省": 1, "福建省": 1};
+  var infoWin = new AMap.InfoWindow({ offset: new AMap.Pixel(0,-30) });
+
+  // —— 同坐标像素偏移（黄金角）——
+  var seen = Object.create(null), GOLDEN=2.3999632297, PIX_BASE=10;
+  var smallRedIcon = new AMap.Icon({
+    size: new AMap.Size(14,20),
+    image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
+    imageSize: new AMap.Size(14,20)
+  });
+
+  var markers = points.map(function(p){
+    var key = p.position[0].toFixed(6)+','+p.position[1].toFixed(6);
+    var n = (seen[key]||0); seen[key] = n+1;
+
+    var off = new AMap.Pixel(0,0);
+    if(n>0){ var r=PIX_BASE*Math.sqrt(n), t=GOLDEN*n; off = new AMap.Pixel(r*Math.cos(t), r*Math.sin(t)); }
+
+    var m = new AMap.Marker({ position:p.position, title:p.name, offset:off, icon:smallRedIcon, zIndex:120+n });
+    m.on('click', function(){ infoWin.setContent('<div style="font-size:14px;">'+p.content+'</div>'); infoWin.open(map, p.position); });
+    return m;
+  });
+  map.add(markers);
+  if (markers.length) map.setFitView(markers, true, [50,50,50,50]);
+
+  function norm(n){ return (n||'').replace(/(省|市|特别行政区|维吾尔自治区|回族自治区|壮族自治区|自治区)$/,''); }
+
+  // —— 高亮省份 + 人数标签 —— 
+  AMap.plugin('AMap.DistrictSearch', function(){
+    var ds = new AMap.DistrictSearch({ level:'province', extensions:'all', subdistrict:0 });
+    var provList = Object.keys(provinceCounts);
+
+    provList.forEach(function(provName, idx){
+      setTimeout(function(){
+        var q = norm(provName);
+        ds.search(q, function(status, result){
+          if (status!=='complete' || !result || !result.districtList || !result.districtList.length) return;
+
+          var dist = result.districtList[0];
+          var boundaries = dist.boundaries || [];
+          if (!boundaries.length) return;
+
+          var baseOpts = {
+            strokeColor:'#1976d2',
+            strokeOpacity:0.9,
+            strokeWeight:2,
+            fillColor:'#64b5f6',
+            fillOpacity:0.1,
+            zIndex:300
+          };
+          function toPath(path){
+            if (typeof path==='string') {
+              return path.split(';').map(function(pair){ var a=pair.split(','); return [parseFloat(a[0]), parseFloat(a[1])]; });
+            }
+            if (Array.isArray(path) && path.length && typeof path[0]==='string') {
+              return path.map(function(pair){ var a=pair.split(','); return [parseFloat(a[0]), parseFloat(a[1])]; });
+            }
+            return path;
+          }
+
+          var polys = boundaries.map(function(b){
+            var poly = new AMap.Polygon(Object.assign({ path: toPath(b) }, baseOpts));
+            poly.setMap(map);
+            return poly;
+          });
+
+          if (polys.length){
+            var ub = polys[0].getBounds();
+            for (var i=1;i<polys.length;i++) ub = ub.union(polys[i].getBounds());
+            var center = ub.getCenter();
+
+            var key = norm(dist.name);
+            var cnt = provinceCounts[dist.name] || provinceCounts[key] || provinceCounts[key+'省'] || 0;
+
+            new AMap.Text({
+              position: center,
+              text: dist.name + '：' + cnt + ' 人',
+              style: {
+                background:'rgba(255,255,255,0.95)', padding:'4px 8px',
+                border:'1px solid #1976d2', 'border-radius':'4px', 'font-weight':'bold', 'font-size': '12px'
+              },
+              zIndex: 400
+            }).setMap(map);
+          }
+        });
+      }, idx*220);
+    });
+  });
+
+  map.addControl(new AMap.ToolBar());
+  map.addControl(new AMap.Scale());
+})();
+</script>
+</body>
+</html>
