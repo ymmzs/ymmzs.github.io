@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>员工打卡可视化</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=b479b036079bc0579bc23d62cdfdfb6b&plugin=AMap.MarkerCluster,AMap.ToolBar,AMap.Scale"></script>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var map = new AMap.Map('map', {
+      zoom: 5,
+      center: [111.236024, 24.559199],
+      viewMode: '2D'
+    });
+
+    var points = [{"name": "龚来", "address": "广东省珠海市金湾区创业中路2号", "province": "广东省", "position": [113.281266, 22.08831], "content": "<b>👤 姓名：</b>龚来<br/><b>📍 地址：</b>广东省 广东省珠海市金湾区创业中路2号"}, {"name": "龙远志", "address": "眉山市东坡区东坡区阳光未来城(蜀山路南)", "province": "四川省", "position": [103.833874, 30.068128], "content": "<b>👤 姓名：</b>龙远志<br/><b>📍 地址：</b>四川省 眉山市东坡区东坡区阳光未来城(蜀山路南)"}, {"name": "龙开吉，齐宗", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>👤 姓名：</b>龙开吉，齐宗<br/><b>📍 地址：</b>广东省 广东省东莞市超东路82号"}];
+    var provinceCounts = {"广东省": 3, "四川省": 1};
+    var infoWin = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) });
+
+    // 创建 marker（红色图标）
+    var markers = points.map(function(p) {
+      var marker = new AMap.Marker({
+        position: p.position,
+        title: p.name,
+        icon: new AMap.Icon({
+          size: new AMap.Size(25, 34),
+          image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_r.png',
+          imageSize: new AMap.Size(25, 34)
+        })
+      });
+      marker.on('click', function() {
+        infoWin.setContent('<div style="font-size:14px;">' + p.content + '</div>');
+        infoWin.open(map, p.position);
+      });
+      return marker;
+    });
+    map.add(markers);
+    map.setFitView(markers, true, [50,50,50,50]);
+
+    // 加载省份 GeoJSON 并高亮
+    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+      .then(res => res.json())
+      .then(geojson => {
+        geojson.features.forEach(f => {
+          var provName = f.properties.name;
+          var count = provinceCounts[provName] || provinceCounts[provName + "省"] || 0;
+          if (count > 0) {
+            var coords = [];
+            if (f.geometry.type === "Polygon") {
+              coords = f.geometry.coordinates.map(ring =>
+                ring.map(coord => [coord[0], coord[1]])
+              );
+            } else if (f.geometry.type === "MultiPolygon") {
+              coords = f.geometry.coordinates.flat().map(ring =>
+                ring.map(coord => [coord[0], coord[1]])
+              );
+            }
+            var polygon = new AMap.Polygon({
+              path: coords,
+              strokeColor: '#ff6666',
+              strokeWeight: 1,
+              fillColor: '#ff9999',
+              fillOpacity: 0.08
+            });
+            polygon.on('mouseover', function() {
+              polygon.setOptions({ fillOpacity: 0.25, strokeWeight: 2 });
+            });
+            polygon.on('mouseout', function() {
+              polygon.setOptions({ fillOpacity: 0.08, strokeWeight: 1 });
+            });
+            map.add(polygon);
+
+            var bounds = polygon.getBounds();
+            var center = bounds.getCenter();
+            var text = new AMap.Text({
+              position: center,
+              text: provName + '：总计 ' + count + ' 人',
+              style: {
+                'background': 'rgba(255,255,255,0.95)',
+                'padding': '4px 8px',
+                'border': '1px solid #ff6666',
+                'border-radius': '4px',
+                'font-weight': 'bold'
+              },
+              zIndex: 200
+            });
+            text.setMap(map);
+          }
+        });
+      });
+
+    new AMap.MarkerCluster(map, markers, { gridSize: 80 });
+    map.addControl(new AMap.ToolBar());
+    map.addControl(new AMap.Scale());
+  </script>
+</body>
+</html>
