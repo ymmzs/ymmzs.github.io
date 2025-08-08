@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>员工打卡可视化</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .amap-marker-label {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #ddd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+  </style>
+  <!-- 预加载需要的插件：聚合、工具条、比例尺、行政区检索 -->
+  <script src="https://webapi.amap.com/maps?v=2.0&key=b479b036079bc0579bc23d62cdfdfb6b&plugin=AMap.MarkerCluster,AMap.ToolBar,AMap.Scale,AMap.DistrictSearch"></script>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    // 初始化地图
+    var map = new AMap.Map('map', {
+      zoom: 5,
+      center: [111.236024, 24.559199],
+      viewMode: '2D'
+    });
+
+    // 点数据
+    var points = [{"name": "龚来", "address": "广东省珠海市金湾区创业中路2号", "province": "广东省", "position": [113.281266, 22.08831], "content": "<b>龚来</b><br/>广东省 广东省珠海市金湾区创业中路2号"}, {"name": "龙远志", "address": "眉山市东坡区东坡区阳光未来城(蜀山路南)", "province": "四川省", "position": [103.833874, 30.068128], "content": "<b>龙远志</b><br/>四川省 眉山市东坡区东坡区阳光未来城(蜀山路南)"}, {"name": "龙开吉", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>龙开吉</b><br/>广东省 广东省东莞市超东路82号"}, {"name": "齐宗", "address": "广东省东莞市超东路82号", "province": "广东省", "position": [113.914478, 23.040178], "content": "<b>齐宗</b><br/>广东省 广东省东莞市超东路82号"}];
+    var emphasizeProvinces = []; // 需要放大的省份（可为空）
+    console.log('points:', points);
+
+    var infoWin = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) });
+
+    // 创建标记
+    var markers = points.map(function(p) {
+      var icon = new AMap.Icon({
+        size: new AMap.Size(25, 34),
+        image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
+        imageSize: new AMap.Size(25, 34)
+      });
+      var m = new AMap.Marker({
+        position: p.position,   // [lng, lat]
+        title: p.name || '',
+        icon: icon
+      });
+      m._meta = p; // 保存元数据，便于后续按省处理
+
+      m.on('click', function() {
+        infoWin.setContent(
+          '<div style="font-size:14px;">' +
+          '<b>👤 姓名：</b>' + (p.name || '') + '<br/>' +
+          '<b>📍 地址：</b>' + (p.province ? p.province + ' ' : '') + (p.address || '') +
+          '</div>'
+        );
+        infoWin.open(map, p.position);
+      });
+      return m;
+    });
+
+    // 把标记先加到地图（就算后面某功能失败，点也能看到）
+    map.add(markers);
+
+    // 视野自适应
+    if (markers.length) {
+      map.setFitView(markers, true, [50, 50, 50, 50]);
+    }
+
+    // -------------------------------
+    // 省份分组统计 + 高亮 + “总计：X人”
+    // -------------------------------
+    var provinceCounts = {};
+    points.forEach(function(p) {
+      var prov = (p.province || '').trim();
+      if (!prov) return;
+      provinceCounts[prov] = (provinceCounts[prov] || 0) + 1;
+    });
+
+    var provinces = Object.keys(provinceCounts);
+    if (provinces.length) {
+      var ds = new AMap.DistrictSearch({
+        level: 'province',
+        extensions: 'all',
+        subdistrict: 0
+      });
+
+      function renderNext(i) {
+        if (i >= provinces.length) return;
+        var provName = provinces[i];
+
+        // 放大该省份的点（如果在强调列表中）
+        if (emphasizeProvinces.indexOf(provName) >= 0) {
+          var bigIcon = new AMap.Icon({
+            size: new AMap.Size(32, 44),
+            image: 'https://webapi.amap.com/theme/v1.3/markers/n/mark_b.png',
+            imageSize: new AMap.Size(32, 44)
+          });
+          markers
+            .filter(function(m){ return m._meta && m._meta.province === provName; })
+            .forEach(function(m){ m.setIcon(bigIcon); m.setTop(true); });
+        }
+
+        ds.search(provName, function(status, result){
+          if (status === 'complete' && result.districtList && result.districtList.length) {
+            var dist = result.districtList[0];
+            var boundaries = dist.boundaries || [];
+            var polys = boundaries.map(function(path){
+              return new AMap.Polygon({
+                path: path,
+                strokeColor: '#1976d2',     // 边界线
+                strokeOpacity: 0.9,
+                strokeWeight: 2,
+                fillColor: '#64b5f6',       // 省填充色
+                fillOpacity: 0.15
+              });
+            });
+            map.add(polys);
+
+            // 省中心文本：显示“省名：总计 X 人”
+            var center = dist.center; // [lng, lat]
+            var count = provinceCounts[provName] || 0;
+            var text = new AMap.Text({
+              position: center,
+              text: provName + '：总计 ' + count + ' 人',
+              style: {
+                'background': 'rgba(255,255,255,0.95)',
+                'padding': '4px 8px',
+                'border': '1px solid #1976d2',
+                'border-radius': '4px',
+                'font-weight': 'bold'
+              },
+              zIndex: 120
+            });
+            text.setMap(map);
+          }
+          // 串行下一省，稍微等 120ms，避免被限流
+          setTimeout(function(){ renderNext(i + 1); }, 120);
+        });
+      }
+      renderNext(0);
+    }
+
+    // 启用聚合 & 控件（插件已在 script URL 中预加载）
+    new AMap.MarkerCluster(map, markers, { gridSize: 80 });
+    map.addControl(new AMap.ToolBar());
+    map.addControl(new AMap.Scale());
+  </script>
+</body>
+</html>
